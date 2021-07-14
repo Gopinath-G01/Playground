@@ -1,0 +1,130 @@
+
+Requirements
+=============
+Assignment
+
+Write a service that supports the following
+1. Api to upload scan with patient details
+	a. One or more Jpeg files and .mp4 video
+	b. Patient details
+	c. Date time
+	d. Recommended by  doctors details 
+2. Write build system
+3. Write unit tests
+4. Write Postman tests(equivalent)
+5. Build system
+	Run app
+	Run tests
+6. Dockerize it 
+7. Deploy and demonstrate
+
+----------------------------------------------------------------------------------------
+Functional Aspects
+===================
+
+	1. Upload the data
+		a. Upload - optional controller to integrate with a basic front-end - Not in current scope for assignment 
+		b. Upload single file
+		c. Upload multiple files
+		d. upload to cloud bucket
+		
+		- upload to a local persistence store/cloud - based on destinationType property
+		
+		Following items are not in current scope for assignment
+		
+		- do a ping to cloud 
+		- if connectivity exists then upload to cloud
+		- if not then a scheduler can try to poll the content table 
+				based on (isSyncedWithCloud) and push data into cloud once connectivity returns
+		
+		Future: We can introduce an intermediate store at acceptance to store the incoming requests into a kafka topic and process them later. possible issue with this approach - huge file sizes could cause delay in processing due to additional layer. Alternately, this can be used as a mitigation step by storing the incoming requests into a kafka topic in case the real-time processing failed. 
+		
+	2. Retrieve the data - Not in current scope for assignment
+		a. Retrieve single file
+			- by scanId
+			- by userId - retrieve the last file
+			- 
+		b. Retrieve multiple files
+			- by userId
+			- by OrgId
+			- by deviceId
+		
+	3. User Registration - Not in current scope for assignment
+		a. Add User
+		b. Update/Modify User
+		c. List User
+		d. Delete User
+		e. Add Organization
+		f. Delete Organization
+		g. List Organization
+		h. Add Device
+		i. Delete Device
+		j. Update Device Owner
+
+Open questions: 
+1. Do we need to house the DB inside the docker container or can it be outside the container ? 
+2. 	
+-------------------------------------------------------------------------------------------
+		
+Database
+=========	
+
+	User
+		userId - varchar2 (100)
+		username - varchar2(100)
+		password - varchar2 (100)
+		type - varchar2 (30) - possible values: patient, doctor, individual, orgAdmin, OrgUser
+		orgId - ForeignKey(Organization:orgId)
+		insertedDate - Date
+		
+	Device
+		deviceId - varchar2 (100)
+		deviceName varchar2 (200)
+		primaryDeviceOwner - ForeignKey(User:userId)
+		//deviceUsers - ForeignKey(User:userId) -- 
+		insertedDate - Date
+		
+	Organization
+		orgId - varchar2 (100)
+		orgName - varchar2 (200)
+		insertedDate - Date
+				
+	[
+	ScanDetails
+		scanId - varchar2 (100) 
+		deviceId - ForeignKey(Device:deviceId)
+		patientId - ForeignKey(User:userId)
+		scanRecommendedBy - ForeignKey(User:userId)
+		scanURL - varchar2 (200)
+		contentType - varchar2 (50)
+		scanSummary - varchar2 (1000)
+		rawContent - CLOB
+		isSyncedWithCloud - boolean
+		insertedDate - Date
+		lastUpdatedDate - Date
+		lastUpdatedBy - Date
+
+	
+	[OR]
+	
+	FileStorage
+		fileId - varchar2 (100) 
+		fileURL - varchar2 (200)
+		fileType - varchar2 (50) - possible values: video, image, text, log
+		rawContent - CLOB
+		isSyncedWithCloud - boolean
+		insertedDate - Date
+		
+	ScanDetails
+		scanId - varchar2 (100)
+		fileId - ForeignKey(FileStorage:fileId)
+		deviceId - ForeignKey(Device:deviceId)
+		patientId - ForeignKey(User:userId)
+		scanRecommendedBy - ForeignKey(User:userId)
+		scanSummary - varchar2 (1000)
+		insertedDate - Date
+		lastUpdatedDate - Date
+		lastUpdatedBy - Date
+		
+	]
+-----------------------------
