@@ -1,7 +1,7 @@
 package com.gopig.fumo.model.validator;
 
 public class ValidationResult {
-    private int code;
+    private String code;
     private String message;
 
     public ValidationResult() {
@@ -13,11 +13,11 @@ public class ValidationResult {
         this.message = status.getMessage();
     }
 
-    public int getCode() {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(int code) {
+    public void setCode(String code) {
         this.code = code;
     }
 

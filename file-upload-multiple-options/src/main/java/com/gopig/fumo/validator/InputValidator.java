@@ -21,7 +21,7 @@ public class InputValidator implements PortalValidator<ScanInfo> {
         } else if (StringUtils.isBlank(scanInfo.getPatientId())) {
             validationStatus = ValidationStatus.MISSING_PATIENT_ID;
         }
-        log.info("Validation Result: "+validationStatus.getMessage());
+        log.info("Validation Result: {}", validationStatus.getMessage());
         return constructResult(validationStatus);
     }
 }

@@ -22,9 +22,9 @@ public class ValidationHelper {
     @Qualifier("inputValidator")
     PortalValidator<ScanInfo> scanInfoPortalValidator;
 
-    public List<ValidationResult> validateUpload(ScanInfo scanInfo, MultipartFile file) {
+    public List<ValidationResult> validateUpload(MultipartFile[] files, ScanInfo scanInfo) {
         List<ValidationResult> response = new ArrayList<>();
-        response.add(fileValidator.validate(file));
+        response.addAll(fileValidator.validate(files));
         response.add(scanInfoPortalValidator.validate(scanInfo));
         return response;
     }
