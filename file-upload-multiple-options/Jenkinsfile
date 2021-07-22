@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    
+    stages {
+		stage('Clone')
+			git 'https://github.com/Gopinath-G01/Playground.git'
+  
+		dir('file-upload-multiple-options') {
+			sh "chmod 755 ./*"
+			
+			stage("compile") {
+				steps {
+					sh './mvnw clean compile'
+				}
+			}
+			stage('Build') {
+				steps {
+					sh './mvnw clean install -DskipTests'
+				}
+			}
+			stage('Test') {
+				steps {
+					step(sh './mvnw clean test')
+					step([$class: 'JUnitResultArchiver', testResults: 
+                     '**/target/surefire-reports/TEST-*.xml'])
+				}
+			}
+			stage('Build Docker image') {
+				steps {
+					sh './mvnw dockerfile:build'
+					sh './mvnw verify'
+				}
+			}
+			stage('Push Docker image') {
+				environment {
+					DOCKER_HUB_LOGIN = credentials('docker-cred')
+				}
+				steps {
+					step(sh 'docker login --username=$DOCKER_HUB_LOGIN_USR --password=$DOCKER_HUB_LOGIN_PSW')
+					step(sh './mvnw dockerfile:push')
+				}
+			}
+			stage("Run Application") {
+				environment {
+					DOCKER_HUB_LOGIN = credentials('docker-cred')
+				}
+				steps {
+					step(sh 'docker login --username=$DOCKER_HUB_LOGIN_USR --password=$DOCKER_HUB_LOGIN_PSW')
+                	step(sh 'docker run -p 9000:9000 $DOCKER_HUB_LOGIN_USR/file-upload-multiple-options --server.port=9000')
+                }
+            }
+		}
+	}
+}
