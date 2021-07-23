@@ -61,7 +61,7 @@ pipeline {
 		stage('Run Application') {
 			steps {
 				sh 'docker login --username $DOCKER_CREDS_USR --password $DOCKER_CREDS_PSW'
-				sh 'docker run -p 9000:9000 ${params.DOCKER_REPO_ID}/file-upload-multiple-options:latest --server.port=9000'
+				sh ("docker run -dp 9000:9000 ${params.DOCKER_REPO_ID}/file-upload-multiple-options:latest --server.port=9000")
 			}
 		}
     }
