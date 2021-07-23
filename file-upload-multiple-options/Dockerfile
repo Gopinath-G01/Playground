@@ -1,16 +1,8 @@
-FROM openjdk:8-jdk-alpine as build
-WORKDIR /workspace/app
-
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
-
-RUN ./mvnw install -DskipTests
-
 FROM openjdk:8-jdk-alpine
 
 MAINTAINER Gopinath Gunasekaran <gopi.nov16@gmail.com>
+
+EXPOSE 9000
 
 VOLUME /tmp
 COPY ./target/*.jar app.jar
