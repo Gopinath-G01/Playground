@@ -1,54 +1,68 @@
 pipeline {
     agent any
-    
-    stages {
-		stage('Clone')
-			git 'https://github.com/Gopinath-G01/Playground.git'
-  
-		dir('file-upload-multiple-options') {
-			sh "chmod 755 ./*"
-			
-			stage("compile") {
-				steps {
-					sh './mvnw clean compile'
-				}
-			}
-			stage('Build') {
-				steps {
-					sh './mvnw clean install -DskipTests'
-				}
-			}
-			stage('Test') {
-				steps {
-					step(sh './mvnw clean test')
-					step([$class: 'JUnitResultArchiver', testResults: 
-                     '**/target/surefire-reports/TEST-*.xml'])
-				}
-			}
-			stage('Build Docker image') {
-				steps {
-					sh './mvnw dockerfile:build'
-					sh './mvnw verify'
-				}
-			}
-			stage('Push Docker image') {
-				environment {
-					DOCKER_HUB_LOGIN = credentials('docker-cred')
-				}
-				steps {
-					step(sh 'docker login --username=$DOCKER_HUB_LOGIN_USR --password=$DOCKER_HUB_LOGIN_PSW')
-					step(sh './mvnw dockerfile:push')
-				}
-			}
-			stage("Run Application") {
-				environment {
-					DOCKER_HUB_LOGIN = credentials('docker-cred')
-				}
-				steps {
-					step(sh 'docker login --username=$DOCKER_HUB_LOGIN_USR --password=$DOCKER_HUB_LOGIN_PSW')
-                	step(sh 'docker run -p 9000:9000 $DOCKER_HUB_LOGIN_USR/file-upload-multiple-options --server.port=9000')
-                }
-            }
-		}
+    tools {
+        maven 'maven3' //This should be defined in Global Tool Configuration maven installatons with name "maven3"
+    }
+	parameters {
+		string(name: 'DOCKER_REPO_ID', defaultValue: 'gopinathg01', description: 'Docker ID belong to the dockerhub repository')
+		booleanParam(name: 'IS_CD_DIR', defaultValue: 'true', description: 'If changing to a directory required')
 	}
+	environment {
+		//Create a Jenkins credential with the name dockerhub, save your username/password.
+		DOCKER_CREDS = credentials('docker-cred')
+	}
+    stages {		
+        stage('Test') {
+            steps {
+				script {
+					if (params.IS_CD_DIR) {
+						dir('file-upload-multiple-options') {
+							sh 'mvn clean test' 
+						}
+					} else {
+						sh 'mvn clean test'
+					}
+				}
+            }
+        }
+		stage('Build') {
+            steps {
+				script {
+					if (params.IS_CD_DIR) {
+						dir('file-upload-multiple-options') {
+							sh 'mvn clean package' 
+						}
+					} else {
+						sh 'mvn clean package'
+					}
+				}
+            }
+        }
+        stage('create docker image') {
+			steps {
+				script {
+					if (params.IS_CD_DIR) {
+						dir('file-upload-multiple-options') {
+							sh 'docker login --username $DOCKER_CREDS_USR --password $DOCKER_CREDS_PSW'
+							sh ("docker build -t ${params.DOCKER_REPO_ID}/file-upload-multiple-options:latest .")
+						}
+					} else {
+						sh 'docker login --username $DOCKER_CREDS_USR --password $DOCKER_CREDS_PSW'
+						sh ("docker build -t ${params.DOCKER_REPO_ID}/file-upload-multiple-options:latest .")
+					}
+				}
+			}
+		}
+		stage('push docker image') {
+			steps {
+				sh ("docker push  ${params.DOCKER_REPO_ID}/file-upload-multiple-options:latest")
+			}
+        }
+		stage('Run Application') {
+			steps {
+				sh 'docker login --username $DOCKER_CREDS_USR --password $DOCKER_CREDS_PSW'
+				sh 'docker run -p 9000:9000 ${params.DOCKER_REPO_ID}/file-upload-multiple-options:latest --server.port=9000'
+			}
+		}
+    }
 }
