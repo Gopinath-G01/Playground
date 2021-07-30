@@ -185,9 +185,9 @@ public class ScanService {
                 storageDetailsEntity.setFileType(file.getContentType());
                 storageDetailsEntity.setFileName(fileName);
                 storageDetailsEntity.setFileSize(file.getSize());
-                storageDetailsEntity.setRawContent(file.getBytes());
                 if (null != cloudData && cloudData.size() > 0) {
                     storageDetailsEntity.setFileCloudURL(cloudData.get(fileName));
+                    storageDetailsEntity.setRawContent(file.getBytes());
                     if (StringUtils.isNotEmpty(cloudData.get(fileName)))
                         storageDetailsEntity.setSyncedWithCloud(true);
                 }

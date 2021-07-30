@@ -26,7 +26,8 @@ public class ScanController {
 
     @PostMapping(value = {"/upload", "/upload/{destination}"})
     public UploadResponse multiUpload(@RequestParam("files") MultipartFile[] files,
-                                      @RequestParam("scanInfo") String scanInfoJson, @PathVariable(required = false) String destination)
+                                      @RequestParam("scanInfo") String scanInfoJson, 
+                                      @PathVariable(required = false) String destination)
             throws ScanServiceException {
         log.info("Request received to upload file");
         log.info("Number of Files received: {}", ((null != files) ? files.length : 0));
